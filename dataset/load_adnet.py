@@ -1,14 +1,14 @@
 import math
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 import torch
 from moviad.backbones.micronet.utils import compute_mask_contamination
+from moviad.datasets.dataset_arguments import DatasetArguments
 from moviad.datasets.exceptions.exceptions import DatasetTooSmallToContaminateException
 from moviad.datasets.vad_dataset import VADDataset
-from moviad.utilities.configurations import LabelName, Split, TaskType
+from moviad.utilities.configurations import LabelName, Split
 from PIL import Image
 from torchvision.transforms import transforms
 from torchvision.transforms.functional import InterpolationMode
@@ -17,71 +17,45 @@ IMG_EXTENSIONS = (".png", ".PNG")
 
 
 class ADNetDataset(VADDataset):
-    """ADNet dataset class.
-
-    Args:
-        task (TaskType): Task type, ``classification``, ``detection`` or ``segmentation``.
-        root (Path | str): Path to the root of the dataset.
-            Defaults to ``./datasets/MVTec``.
-        category (str): Sub-category of the dataset, e.g. 'bottle'
-            Defaults to ``bottle``.
-        transform (Transform, optional): Transforms that should be applied to the input images.
-            Defaults to ``None``.
-        split (str | Split | None): Split of the dataset, usually Split.TRAIN or Split.TEST
-            Defaults to ``None``
-
-    """
+    """ADNet dataset class."""
 
     def __init__(
         self,
-        task: TaskType,
-        root: str,
+        dataset_arguments: DatasetArguments,
         category: str,
-        split: Split,
-        norm: bool = True,
-        img_size=(256, 256),
-        gt_mask_size: Optional[tuple] = None,
-        preload_imgs: bool = True,
+        split: Split | list[Split],
     ) -> None:
-        super(ADNetDataset)
+        super().__init__(
+            dataset_arguments,
+            category,
+            split,
+        )
 
-        gt_mask_size = img_size if gt_mask_size is None else gt_mask_size
-
-        self.img_size = img_size
-        self.gt_mask_size = gt_mask_size
-
-        self.root_category = Path(root) / Path(category)
-        self.category = category
-        self.split = split
+        self.root_category = Path(self.dataset_arguments.dataset_path) / Path(self.category)
         self.samples: pd.DataFrame = None
-        self.preload_imgs = preload_imgs
 
-        if norm:
-            t_list = [
-                transforms.ToTensor(),
-                transforms.Resize(img_size, antialias=True),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                ),
-            ]
+        if self.dataset_arguments.image_transform_list:
+            self.transform_image = transforms.Compose(self.dataset_arguments.image_transform_list)
         else:
-            t_list = [
-                transforms.ToTensor(),
-                transforms.Resize(img_size, antialias=True),
-            ]
-
-        self.transform_image = transforms.Compose(t_list)
+            self.transform_image = transforms.Compose(
+                [
+                    transforms.ToTensor(),
+                    transforms.Resize(self.dataset_arguments.img_size, antialias=True),
+                ]
+            )
 
         self.transform_mask = transforms.Compose(
             [
                 transforms.ToTensor(),
                 transforms.Resize(
-                    gt_mask_size,
+                    self.dataset_arguments.gt_mask_size,
                     antialias=True,
                     interpolation=InterpolationMode.NEAREST,
                 ),
             ]
         )
+
+        self.load_dataset()
 
     def compute_contamination_ratio(self) -> float:
         if self.samples is None:
@@ -176,19 +150,12 @@ class ADNetDataset(VADDataset):
                 raise Exception(msg)
 
         self.samples = samples[samples.split == self.split].reset_index(drop=True)
-        if self.preload_imgs:
-            self.data = [
-                self.transform_image(
-                    Image.open(self.samples.iloc[index].image_path).convert("RGB")
-                )
-                for index in range(len(self.samples))
-            ]
 
     def __len__(self) -> int:
         return len(self.samples)
 
-    def contaminate(self, source: "VADDataset", ratio: float, seed: int = 42) -> int:
-        if type(source) != ADNetDataset:
+    def contaminate(self, source: VADDataset, ratio: float, seed: int = 42) -> int:
+        if type(source) is not ADNetDataset:
             raise ValueError("Dataset should be of type ADNetDataset")
         if self.samples is None:
             raise ValueError("Destination dataset is not loaded")
@@ -212,16 +179,6 @@ class ADNetDataset(VADDataset):
         )
         for index in contaminated_entries_indices:
             entry_metadata = source.samples.iloc[index]
-            if source.preload_imgs:
-                entry = source.data[index]
-                self.data.append(entry)
-            else:
-                entry = self.transform_image(
-                    Image.open(self.samples.iloc[index].image_path).convert("RGB")
-                )
-                self.data.append(entry)
-                source.data = [e for e in source.data if hash(e) != hash(entry)]
-
             self.samples = pd.concat(
                 [self.samples, pd.DataFrame([entry_metadata])], ignore_index=True
             )
@@ -230,11 +187,6 @@ class ADNetDataset(VADDataset):
         source.samples = source.samples.drop(contaminated_entries_indices).reset_index(
             drop=True
         )
-        source.data = [
-            source.data[i]
-            for i in range(len(source.data))
-            if i not in contaminated_entries_indices
-        ]
         return contamination_set_size
 
     def __getitem__(self, index: int):
@@ -249,13 +201,13 @@ class ADNetDataset(VADDataset):
             path (str) : path of the input image
         """
 
+        if self.samples is None:
+            self.load_dataset()
+
         # open the image and get the tensor
-        if self.preload_imgs:
-            image = self.data[index]
-        else:
-            image = self.transform_image(
-                Image.open(self.samples.iloc[index].image_path).convert("RGB")
-            )
+        image = self.transform_image(
+            Image.open(self.samples.iloc[index].image_path).convert("RGB")
+        )
 
         if self.split == Split.TRAIN:
             return image
@@ -268,6 +220,6 @@ class ADNetDataset(VADDataset):
                 mask = self.transform_mask(mask)
 
             else:
-                mask = torch.zeros(1, *self.gt_mask_size)
+                mask = torch.zeros(1, *self.dataset_arguments.img_size)
 
             return image, label, mask.int(), path
