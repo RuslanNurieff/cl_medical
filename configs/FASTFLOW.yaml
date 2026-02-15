@@ -1,10 +1,9 @@
 model:
-  name: STFPM
+  name: FastFlow
   backbone: resnet18
-  layers:
-  - layer1
-  - layer2
-  - layer3
+  input_size:
+  - 256
+  - 256
   optimizer: null
   loss_function: null
 dataset:

@@ -3,7 +3,7 @@ import yaml
 # Define your configuration
 config = {
     'model': {
-        'name': 'STFPM',
+        'name': 'PatchCore',
         'backbone': "resnet18",
         'layers': ['layer1', 'layer2', 'layer3'],
         'optimizer': None,
@@ -24,7 +24,7 @@ config = {
             "min_delta": 0.02,
             "metric": "img_f1"
         },
-        "device":"cuda:2",
+        "device": "cuda:2",
         "logging": True,
         "aggregated": True,
         
@@ -32,5 +32,5 @@ config = {
 }
 
 # Write to YAML file
-with open('/home/ruslan/cl_medical/configs/STFPM.yaml', 'w') as f:
+with open(f'/home/ruslan/cl_medical/configs/{config['model']['name'].upper()}.yaml', 'w') as f:
     yaml.dump(config, f, default_flow_style=False, sort_keys=False)

@@ -1,8 +1,7 @@
 model:
-  name: STFPM
+  name: PatchCore
   backbone: resnet18
   layers:
-  - layer1
   - layer2
   - layer3
   optimizer: null
@@ -19,7 +18,7 @@ dataset:
   transforms: null
 train:
   batch_size: 32
-  epochs: 75
+  epochs: 3
   early_stop:
     patience: 3
     min_delta: 0.02

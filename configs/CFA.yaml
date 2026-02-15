@@ -1,6 +1,6 @@
 model:
-  name: STFPM
-  backbone: resnet18
+  name: CFA
+  backbone: wide_resnet50_2
   layers:
   - layer1
   - layer2
@@ -19,7 +19,7 @@ dataset:
   transforms: null
 train:
   batch_size: 32
-  epochs: 75
+  epochs: 1
   early_stop:
     patience: 3
     min_delta: 0.02

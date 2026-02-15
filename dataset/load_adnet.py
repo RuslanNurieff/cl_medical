@@ -13,7 +13,7 @@ from PIL import Image
 from torchvision.transforms import transforms
 from torchvision.transforms.functional import InterpolationMode
 
-IMG_EXTENSIONS = (".png", ".PNG")
+IMG_EXTENSIONS = (".png", ".PNG", ".jpg", ".JPG", ".jpeg", ".JPEG")
 
 
 class ADNetDataset(VADDataset):
