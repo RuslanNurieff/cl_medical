@@ -8,8 +8,8 @@ model:
   optimizer: null
   loss_function: null
 dataset:
-  name: adnet
-  path: /mnt/disk2/VAD_DATASETS/Medical/Medical
+  name: bmad
+  path: /mnt/disk1/ruslan_nuriev/bmad
   img_size:
   - 256
   - 256

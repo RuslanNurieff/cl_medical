@@ -45,9 +45,9 @@ if __name__ == "__main__":
 
         for model in all_models:
             full_conf_path = Path(config_path) / Path(model).with_suffix(".yaml")
-            os.system(f"uv run /home/ruslan/cl_medical/train/train.py --config_path {full_conf_path} --n_runs {args.n_runs}")
+            os.system(f"uv run /home/ruslan/cl_medical/static/train/train.py --config_path {full_conf_path} --n_runs {args.n_runs}")
         
     else:
         model_name = args.model.upper()
         full_conf_path = Path(config_path) / Path(model_name).with_suffix(".yaml")
-        os.system(f"uv run /home/ruslan/cl_medical/train/train.py --category {args.category} --config_path {full_conf_path} --n_runs {args.n_runs}")
+        os.system(f"uv run /home/ruslan/cl_medical/static/train/train.py --category {args.category} --config_path {full_conf_path} --n_runs {args.n_runs}")

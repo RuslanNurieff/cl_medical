@@ -1,6 +1,8 @@
 from moviad.datasets.dataset_arguments import DatasetArguments
 from dataset.load_adnet import ADNetDataset
+from dataset.load_bmad import BMADDataset
 from moviad.datasets.mvtec import MVTecDataset
+# from moviad.datasets.bm
 
 from functools import partial
 
@@ -15,6 +17,8 @@ def get_dataset(config):
     if config['dataset']['name'].lower() == "mvtec":
         return partial(MVTecDataset, dataset_arguments=args)
     elif config['dataset']['name'].lower() == "adnet":
+        return partial(ADNetDataset, dataset_arguments=args)
+    elif config['dataset']['name'].lower() == "bmad":
         return partial(ADNetDataset, dataset_arguments=args)
 
 

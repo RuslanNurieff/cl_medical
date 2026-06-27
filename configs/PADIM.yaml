@@ -9,7 +9,7 @@ model:
   loss_function: null
 dataset:
   name: adnet
-  path: /mnt/disk2/VAD_DATASETS/Medical/Medical
+  path: /mnt/disk1/ruslan_nuriev/adnet
   img_size:
   - 256
   - 256
