@@ -13,3 +13,6 @@ wheels/
 .ruff_cache
 .pytest_cache
 wandb/
+
+# Test files notebook
+test.ipynb

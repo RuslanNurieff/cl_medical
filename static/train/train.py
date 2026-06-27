@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import pandas as pd
 import wandb
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     args = get_args()
     config = get_conf(args.config_path)
     if config['train']['logging']:
-        wandb.init(project=config['model']['name'])
+        wandb.init(project=config['model']['name'], name="run_2")
 
     if args.category:
         train = Train(config=config)

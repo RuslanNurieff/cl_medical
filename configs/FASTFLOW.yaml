@@ -18,11 +18,11 @@ dataset:
   transforms: null
 train:
   batch_size: 32
-  epochs: 75
+  epochs: 100
   early_stop:
-    patience: 3
-    min_delta: 0.02
-    metric: img_f1
+    patience: 10
+    min_delta: 0.01
+    metric: img_roc
   device: cuda:2
   logging: true
   aggregated: true
